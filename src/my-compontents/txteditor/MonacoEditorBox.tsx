@@ -1,7 +1,11 @@
 import React from 'react';
 import { Editor, OnMount } from '@monaco-editor/react';
 import * as monacoType from 'monaco-editor';
-import { Text, makeStyles, Tooltip } from '@fluentui/react-components';
+import { Text, makeStyles, Tooltip, Toolbar } from '@fluentui/react-components';
+import { CodeBlockFilled } from "@fluentui/react-icons";
+import LanguageSelector from './LanguageSelector';
+
+
 
 interface MonacoEditorBoxProps {
   value: string;
@@ -12,26 +16,19 @@ interface MonacoEditorBoxProps {
   onEditorReady?: (editor: monacoType.editor.IStandaloneCodeEditor, monaco: typeof monacoType) => void;
 };
 
-const useStyles = makeStyles({
-  languageText: {
-    ":hover": {
-      cursor: "pointer"
-    }
-  },
-});
 
 const MonacoEditorBox: React.FC<MonacoEditorBoxProps> = ({
   value,
   onChange,
   language = "plaintxt",
-  height = "300px",
+  height = "450px",
   width = "100%",
   onEditorReady,
 }) => {
 
   const editorRef = React.useRef<null | monacoType.editor.IStandaloneCodeEditor>(null);
   const [languageId, setLanguageId] = React.useState<string>("");
-  const styles = useStyles();
+  
 
   const handleEditorMount: OnMount = (editor, monaco) => {
     // 設定外層的 ref
@@ -73,26 +70,15 @@ const MonacoEditorBox: React.FC<MonacoEditorBoxProps> = ({
           formatOnType: true,
         }}
       />
-      <div>
-        <Tooltip content="切換語言" relationship='label'>
-          <Text
-            className={styles.languageText}
-            size={300}
-            color='black'
-            onClick={() => {
-              const model = editorRef.current?.getModel();
-              if(model) {
-                const l = languageId === "python" ? "plaintext" : "python";
-                monacoType.editor.setModelLanguage(model, l);
-                setLanguageId(l);
-              }
-            }}
-          >{languageId}</Text>
-        </Tooltip>
-      </div>
+
+      <Toolbar>
+        <LanguageSelector 
+          languageId={languageId}
+          setLanguageId={setLanguageId}
+          editorRef={editorRef}
+        />
+      </Toolbar>
       
-
-
 
     </div>
   )

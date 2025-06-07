@@ -11,6 +11,7 @@ import {
   TableHeader,
   TableHeaderCell,
   TableRow,
+  makeStyles,
   mergeClasses,
   Button,
   Dialog,
@@ -31,6 +32,8 @@ import { useVirtualizer } from "@tanstack/react-virtual";
 import { RowData, defaultSheet, useSheetStyles } from "./rowtype";
 import { useCellStyles, CellValue } from "./CellValue";
 
+import { DraggableDialog, DraggableDialogSurface, DraggableDialogHandle } from '@fluentui-contrib/react-draggable-dialog';
+
 import {
   Toolbar,
   ToolbarButton,
@@ -46,10 +49,30 @@ import MonacoEditorBox from "../txteditor/MonacoEditorBox";
 import * as monacoType from 'monaco-editor';
 
 
+import { DismissRegular } from "@fluentui/react-icons";
+import {
+  MessageBar,
+  MessageBarActions,
+  MessageBarTitle,
+  MessageBarBody,
+} from "@fluentui/react-components";
+
+
+
+const useEditingPanelStyles = makeStyles({
+  editingPanel: {
+    width: "1000px",
+    maxWidth: "none",
+    gap: "16px", 
+  }
+})
+
+
 const FluentUITable: React.FC = () => {
   const [data, setData] = useState(defaultSheet);
   const styles = useSheetStyles();
   const cellstyles = useCellStyles();
+  const editingPanelStyles = useEditingPanelStyles();
 
   function updateTable(rowIndex: number, columnId: string, newValue: string) {
     setData((old) =>
@@ -371,8 +394,9 @@ const FluentUITable: React.FC = () => {
             }}>
 
           <CellValue className={cellstyles.cell} value={editingCell.value}/>
-            <Dialog 
+          <DraggableDialog
             open = {editPanelOpen}
+            // style={{ width: "300px"}}
             // modalType="non-modal"
           >
             <DialogTrigger disableButtonEnhancement>
@@ -387,15 +411,18 @@ const FluentUITable: React.FC = () => {
               />
             </DialogTrigger>
 
-            <DialogSurface>
+            <DraggableDialogSurface
+              className={editingPanelStyles.editingPanel}
+            >
               <DialogBody>
-                <DialogTitle>
-                  編輯
-                  <InfoLabel info={"無法使用 Tab 縮排，請使用空白鍵。"}/>
-                </DialogTitle>
+                <DraggableDialogHandle>
+                  <DialogTitle>
+                    編輯 
+                  </DialogTitle>
+                </DraggableDialogHandle>
+
                 <DialogContent style={{ display: 'flex', flexDirection: 'column', gap: "12px"}}>
-                  {/* !!! 在這裡放入你的文本/程式碼編輯區域 !!! */}
-                  <div>修改單元格的值</div>
+                  <div> 注意事項 <InfoLabel info={"目前無法正常使用 Tab 縮排，請使用空白鍵。"}/></div>
 
                   <Toolbar style={{ backgroundColor: "rgba(216, 216, 216, 0.2)"}}>
                     <Tooltip content="Save" relationship="label">
@@ -426,8 +453,8 @@ const FluentUITable: React.FC = () => {
                   }}>關閉</Button>
                 </DialogActions>
               </DialogBody>
-            </DialogSurface>
-          </Dialog>
+            </DraggableDialogSurface>
+          </DraggableDialog>
 
         </div>
       )}

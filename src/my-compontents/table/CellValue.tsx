@@ -50,6 +50,8 @@ export const useCellStyles = makeStyles({
       alignItems: "center",
       justifyContent: "center",
     },
+
+
 })
 
 
