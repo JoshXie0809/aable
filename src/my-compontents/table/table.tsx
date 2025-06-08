@@ -32,7 +32,13 @@ import { useVirtualizer } from "@tanstack/react-virtual";
 import { CellTypes, RowData, defaultSheet, useSheetStyles } from "./rowtype";
 import { useCellStyles, CellValue } from "./CellValue";
 
-import { DraggableDialog, DraggableDialogSurface, DraggableDialogHandle } from '@fluentui-contrib/react-draggable-dialog';
+
+import { tokens, Tab, TabList } from "@fluentui/react-components";
+import type {
+  SelectTabData,
+  SelectTabEvent,
+  TabValue,
+} from "@fluentui/react-components";
 
 import {
   Toolbar,
@@ -42,8 +48,23 @@ import {
 import MonacoEditorBox from "../txteditor/MonacoEditorBox";
 import * as monacoType from 'monaco-editor';
 
-import { useDraggable } from '@dnd-kit/core';
-import { DndContext } from '@dnd-kit/core';
+import {
+  AirplaneRegular,
+  AirplaneFilled,
+  AirplaneTakeOffRegular,
+  AirplaneTakeOffFilled,
+  TimeAndWeatherRegular,
+  TimeAndWeatherFilled,
+  bundleIcon,
+} from "@fluentui/react-icons";
+import EditingPanelDialog from "./EditingPanel";
+
+const Airplane = bundleIcon(AirplaneFilled, AirplaneRegular);
+const AirplaneTakeOff = bundleIcon(
+  AirplaneTakeOffFilled,
+  AirplaneTakeOffRegular
+);
+const TimeAndWeather = bundleIcon(TimeAndWeatherFilled, TimeAndWeatherRegular);
 
 
 const useEditingPanelStyles = makeStyles({
@@ -55,10 +76,7 @@ const useEditingPanelStyles = makeStyles({
 })
 
 
-
 const FluentUITable: React.FC = () => {
-
-
 
   const [data, setData] = useState(defaultSheet);
   const styles = useSheetStyles();
@@ -263,13 +281,8 @@ const FluentUITable: React.FC = () => {
     }
   }, [handleScroll]); // 依賴 handleScroll 確保事件監聽器正確添加/移除
 
-    const {attributes, listeners, setNodeRef, transform} = useDraggable({
-    id: 'draggable-editing-panel',
-  });
 
-  const draggableStyle = transform ? {
-    transform: `translate3d(${transform.x}px, ${transform.y}px, 0)`,
-  } : undefined;
+
   
   return (
     <div
@@ -364,69 +377,90 @@ const FluentUITable: React.FC = () => {
             }}>
 
           <CellValue className={cellstyles.cell} cellObj={editingCell.cellObject}/>
+          
+          <EditingPanelDialog 
+            editPanelOpen={editPanelOpen}
+            setEditPanelOpen={setEditPanelOpen}
+            editingCell={editingCell}
+            monacoEditorValue={monacoEditorValue}
+            setMonacoEditorValue={setMonacoEditorValue}
+            handlePanelSave={handlePanelSave}
+            handleEditorReady={handleEditorReady}
+            editingPanelStyles={editingPanelStyles}
+            cellstyles={cellstyles}
+          />
 
-            <Dialog
-              open = {editPanelOpen}
-              // style={{ width: "300px"}}
-              // modalType="non-modal"
+
+          {/* <Dialog
+            open = {editPanelOpen}
+            // style={{ width: "300px"}}
+            // modalType="non-modal"
+          >
+            <DialogTrigger disableButtonEnhancement>
+              <Button
+                className={cellstyles.overflowButton1}
+                appearance="subtle"
+                onClick={() => {
+                  setEditPanelOpen(true)
+                  setMonacoEditorValue(`${editingCell.cellObject.value}`)
+                }}
+                icon={<Settings20Regular />}
+              />
+            </DialogTrigger>
+
+            <DialogSurface
+              className={editingPanelStyles.editingPanel}
             >
-              <DialogTrigger disableButtonEnhancement>
-                <Button
-                  className={cellstyles.overflowButton1}
-                  appearance="subtle"
-                  onClick={() => {
-                    setEditPanelOpen(true)
-                    setMonacoEditorValue(`${editingCell.cellObject.value}`)
-                  }}
-                  icon={<Settings20Regular />}
-                />
-              </DialogTrigger>
+              <DialogBody>
+                <DialogTitle>
+                  <TabList selectedValue={selectedValue} onTabSelect={onTabSelect}>
+                    <Tab id="Arrivals" icon={<Airplane />} value="arrivals">
+                      Arrivals
+                    </Tab>
+                    <Tab id="Departures" icon={<AirplaneTakeOff />} value="departures">
+                      Departures
+                    </Tab>
+                    <Tab id="Conditions" icon={<TimeAndWeather />} value="conditions">
+                      Conditions
+                    </Tab>
+                  </TabList>
+                </DialogTitle>
+                
+                <DialogContent style={{ display: 'flex', flexDirection: 'column', gap: "12px"}}>
+                  <div> 注意事項 <InfoLabel info={"目前無法正常使用 Tab 縮排，請使用空白鍵。"}/></div>
 
-              <DialogSurface
-                ref={setNodeRef} style={draggableStyle} {...listeners} {...attributes}
-                className={editingPanelStyles.editingPanel}
-              >
-
-                <DialogBody>
-                  <DialogTitle>
-                    <DndContext><div ref={setNodeRef} style={draggableStyle} {...listeners} {...attributes}>🏆</div>👌</DndContext>
-                  </DialogTitle>  
+                  <Toolbar style={{ backgroundColor: "rgba(216, 216, 216, 0.2)"}}>
+                    <Tooltip content="Save" relationship="label">
+                      <ToolbarButton icon={<SaveEdit20Regular/>} 
+                        onClick={() => handlePanelSave(editingCell.rowIndex, editingCell.columnId, monacoEditorValue)}/>
+                    </Tooltip>
+                    <Tooltip content="Save and Close" relationship="label">
+                      <ToolbarButton icon={<SaveEdit20Filled/>} 
+                        onClick={() => {
+                          handlePanelSave(editingCell.rowIndex, editingCell.columnId, monacoEditorValue)
+                          setMonacoEditorValue('');
+                          setEditPanelOpen(false);
+                        }}/>
+                    </Tooltip>
+                  </Toolbar>
                   
-                  <DialogContent style={{ display: 'flex', flexDirection: 'column', gap: "12px"}}>
-                    <div> 注意事項 <InfoLabel info={"目前無法正常使用 Tab 縮排，請使用空白鍵。"}/></div>
-
-                    <Toolbar style={{ backgroundColor: "rgba(216, 216, 216, 0.2)"}}>
-                      <Tooltip content="Save" relationship="label">
-                        <ToolbarButton icon={<SaveEdit20Regular/>} 
-                          onClick={() => handlePanelSave(editingCell.rowIndex, editingCell.columnId, monacoEditorValue)}/>
-                      </Tooltip>
-                      <Tooltip content="Save and Close" relationship="label">
-                        <ToolbarButton icon={<SaveEdit20Filled/>} 
-                          onClick={() => {
-                            handlePanelSave(editingCell.rowIndex, editingCell.columnId, monacoEditorValue)
-                            setMonacoEditorValue('');
-                            setEditPanelOpen(false);
-                          }}/>
-                      </Tooltip>
-                    </Toolbar>
-                    
-                    <MonacoEditorBox 
-                      value={monacoEditorValue} 
-                      onChange={(newValue) => setMonacoEditorValue(newValue || '')} 
-                      onEditorReady={handleEditorReady}
-                    />
-                    
-                  </DialogContent>
-                  <DialogActions>
-                    <Button appearance="secondary" onClick = {() => {
-                      setMonacoEditorValue('');
-                      setEditPanelOpen(false);
-                    }}>關閉</Button>
-                  </DialogActions>
-                </DialogBody>
-              </DialogSurface>
-            </Dialog>            
-          </div>
+                  <MonacoEditorBox 
+                    value={monacoEditorValue} 
+                    onChange={(newValue) => setMonacoEditorValue(newValue || '')} 
+                    onEditorReady={handleEditorReady}
+                  />
+                  
+                </DialogContent>
+                <DialogActions>
+                  <Button appearance="secondary" onClick = {() => {
+                    setMonacoEditorValue('');
+                    setEditPanelOpen(false);
+                  }}>關閉</Button>
+                </DialogActions>
+              </DialogBody>
+            </DialogSurface>
+          </Dialog>             */}
+        </div>
 
 
       )}

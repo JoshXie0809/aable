@@ -8,20 +8,23 @@ import {
   Text,
 } from '@fluentui/react-components';
 
+import MonacoEditorBox from './MonacoEditorBox';
+
+
 const useStyles = makeStyles({
   backdrop: {
     position: 'fixed',
     inset: 0,
     backgroundColor: 'rgba(0, 0, 0, 0.3)',
-    zIndex: 1000,
+    zIndex: 10,
   },
   dialog: {
     position: 'absolute',
-    width: '480px',
+    width: '800px',
     backgroundColor: tokens.colorNeutralBackground1,
     boxShadow: tokens.shadow64,
     borderRadius: tokens.borderRadiusXLarge,
-    zIndex: 1001,
+    zIndex: 11,
     ...shorthands.padding('0px'),
     overflow: 'hidden',
   },
@@ -72,15 +75,12 @@ export default function FluentUIDialogApp() {
   const [open, setOpen] = useState(false);
   const [position, setPosition] = useState({ x: 0, y: 0 });
 
-  const DIALOG_WIDTH = 480;
-  const DIALOG_HEIGHT = 280;
-
   useEffect(() => {
     setPosition({
-      x: window.innerWidth / 2 - DIALOG_WIDTH / 2,
-      y: window.innerHeight / 2 - DIALOG_HEIGHT / 2,
+      x: window.innerWidth / 2, 
+      y: window.innerHeight / 2,
     });
-  }, []);
+  }, [open]);
 
   const handleDragEnd = (event: DragEndEvent) => {
     const { delta } = event;
@@ -88,8 +88,8 @@ export default function FluentUIDialogApp() {
       const nextX = prev.x + delta.x;
       const nextY = prev.y + delta.y;
 
-      const maxX = window.innerWidth - DIALOG_WIDTH;
-      const maxY = window.innerHeight - DIALOG_HEIGHT;
+      const maxX = window.innerWidth ;
+      const maxY = window.innerHeight;
 
       return {
         x: Math.max(0, Math.min(nextX, maxX)),
@@ -123,6 +123,7 @@ function FluentDialog({
   position: { x: number; y: number };
   onClose: () => void;
 }) {
+
   const styles = useStyles();
   const { attributes, listeners, setNodeRef, transform } = useDraggable({
     id: 'fluent-dialog',
@@ -132,8 +133,11 @@ function FluentDialog({
   const finalY = (transform?.y ?? 0) + position.y;
 
   const dialogStyle: React.CSSProperties = {
+    position: 'fixed',
     transform: `translate(${finalX}px, ${finalY}px)`,
   };
+
+  const [editorValue, setEditorValue] = useState("");
 
   return (
     <div ref={setNodeRef} className={styles.dialog} style={dialogStyle}>
@@ -145,6 +149,8 @@ function FluentDialog({
         <Text>
           這是模仿 Fluent UI 樣式的自製 Dialog。你可以拖曳上方標題區塊、關閉對話框，並保留 Fluent UI 的 spacing、字體、顏色與邊界風格。
         </Text>
+
+        <MonacoEditorBox value={editorValue} onChange={(nv) => setEditorValue(nv)} />
       </div>
 
       <div className={styles.footer}>
