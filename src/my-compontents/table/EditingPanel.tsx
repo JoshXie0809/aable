@@ -125,43 +125,41 @@ const EditingPanelDialog: React.FC<EditingPanelDialogProps> = ({
                 />
               </Tooltip>
             </Toolbar>
-					
-						<div>
-              編輯器注意事項{' '}
-              <InfoLabel info={'目前無法正常使用 Tab 縮排，請使用空白鍵。'} />
-            </div>
 
-            <div 
-							style={{ 
-								display: "flex",
-      					flexDirection: "column",
-								minHeight: "520px",
-								border: '2px solid #ccc',
-								borderRadius: '4px', 
-								overflow: 'hidden',
-								padding: "4px",
-							}}>
+              <div>
+                編輯器注意事項{' '}
+                <InfoLabel info={'目前無法正常使用 Tab 縮排，請使用空白鍵。'} />
+              </div>
 
-							{
-								selectedValue === "edit" && 
-									<MonacoEditorBox 
-										value={monacoEditorValue}
-										onChange={(nval) => setMonacoEditorValue(nval || "")}
-										onEditorReady={handleEditorReady}
-									/>
-							}
+              <div 
+                style={{ 
+                display: "flex",
+                flexDirection: "column",
+                minHeight: "520px",
+                border: '2px solid #ccc',
+                borderRadius: '4px', 
+                overflow: 'hidden',
+                padding: "4px",
+              }}>
 
-							{
-								selectedValue === "setting" &&
-								 <Button onClick={() => {
-									editingCell.cellObject.celltype === "text" 
-									? setEditingCell({...editingCell, cellObject: {...editingCell.cellObject, celltype: "null"}})
-									: setEditingCell({...editingCell, cellObject: {...editingCell.cellObject, celltype: "text"}})
+              {
+                selectedValue === "edit" && 
+                <MonacoEditorBox 
+                  value={monacoEditorValue}
+                  onChange={(nval) => setMonacoEditorValue(nval || "")}
+                  onEditorReady={handleEditorReady}
+                />
+              }
 
-									console.log(editingCell);
-								 }}>
-									{editingCell.cellObject.celltype}
-								 </Button>
+              {
+                selectedValue === "setting" &&
+                <Button onClick={() => {
+                  editingCell.cellObject.celltype === "text" 
+                  ? setEditingCell({...editingCell, cellObject: {...editingCell.cellObject, celltype: "null"}})
+                  : setEditingCell({...editingCell, cellObject: {...editingCell.cellObject, celltype: "text"}})
+                }}>
+                  {editingCell.cellObject.celltype}
+                </Button>
 									
 							}
 
