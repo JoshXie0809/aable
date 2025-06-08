@@ -76,6 +76,19 @@ const useEditingPanelStyles = makeStyles({
 })
 
 
+export type EditingCell = {
+  rowIndex: number;
+  columnId: string;
+  cellObject: CellTypes;
+  top: number;
+  left: number;
+  width: number;
+  height: number;
+};
+
+export type SetEditingCell = React.Dispatch<React.SetStateAction<EditingCell | null>>;
+
+
 const FluentUITable: React.FC = () => {
 
   const [data, setData] = useState(defaultSheet);
@@ -105,15 +118,8 @@ const FluentUITable: React.FC = () => {
 
   const [hoveredCell, setHoveredCell] = 
     useState<{ rowIndex: number | null; colIndex: number | null }>({ rowIndex: null, colIndex: null });
-  const [editingCell, setEditingCell] = useState<null | {
-    rowIndex: number;
-    columnId: string;
-    cellObject: CellTypes;
-    top: number;
-    left: number;
-    width: number;
-    height: number;
-  }>(null);
+  
+  const [editingCell, setEditingCell] = useState<null | EditingCell>(null);
 
   const [editPanelOpen, setEditPanelOpen] = useState<boolean>(false);
   
@@ -138,18 +144,25 @@ const FluentUITable: React.FC = () => {
     setMonacoEditorValue(newValue);
 
     if (editingCell?.cellObject.celltype === "text") {
-      var newCellObj = {...editingCell?.cellObject};
-      newCellObj.value = newValue;
-      setEditingCell(prev => prev ? { ...prev, cellObject: newCellObj } : null);
+      var newCellObj__text = {...editingCell?.cellObject};
+      newCellObj__text.value = newValue;
+      setEditingCell(prev => prev ? { ...prev, cellObject: newCellObj__text } : null);
       
       updateTable(
         targetRowIndex, 
         targetColumnId, 
-        newCellObj,
+        newCellObj__text,
       );
 
     } else if(editingCell?.cellObject.celltype === "null") {
-      // do nothing
+      var newCellObj__null = {...editingCell?.cellObject};
+      newCellObj__null.value = "";
+      setEditingCell(prev => prev ? { ...prev, cellObject: newCellObj__null } : null);
+            updateTable(
+        targetRowIndex, 
+        targetColumnId, 
+        newCellObj__null,
+      );
     }
     
   };
@@ -382,6 +395,7 @@ const FluentUITable: React.FC = () => {
             editPanelOpen={editPanelOpen}
             setEditPanelOpen={setEditPanelOpen}
             editingCell={editingCell}
+            setEditingCell={setEditingCell}
             monacoEditorValue={monacoEditorValue}
             setMonacoEditorValue={setMonacoEditorValue}
             handlePanelSave={handlePanelSave}

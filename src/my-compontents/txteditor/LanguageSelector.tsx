@@ -23,8 +23,6 @@ const useStyles = makeStyles({
   }
 });
 
-
-
 const LanguageSelector: React.FC<LanguageSelectorProps> = ({
   editorRef,
   languageId,

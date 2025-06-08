@@ -13,12 +13,15 @@ import {
   Tooltip,
   TabList,
   Tab,
+	Text,
 } from '@fluentui/react-components';
 
 
 import MonacoEditorBox from "../txteditor/MonacoEditorBox";
 import { InfoLabel } from '@fluentui/react-components'; // 確保這是你在用的組件
 import * as  monacoType from 'monaco-editor';
+import { CellTypes } from './rowtype';
+import { EditingCell, SetEditingCell } from './table';
 
 
 import {
@@ -36,12 +39,8 @@ import type {
 type EditingPanelDialogProps = {
   editPanelOpen: boolean;
   setEditPanelOpen: (open: boolean) => void;
-  editingCell: {
-    rowIndex: number;
-    columnId: string;
-    cellObject: { value: string };
-  };
-
+  editingCell: EditingCell;
+	setEditingCell: SetEditingCell;
   monacoEditorValue: string;
   setMonacoEditorValue: (val: string) => void;
   handlePanelSave: (rowIndex: number, columnId: string, value: string) => void;
@@ -57,7 +56,8 @@ const EditingPanelDialog: React.FC<EditingPanelDialogProps> = ({
   editPanelOpen,
   setEditPanelOpen,
   editingCell,
-  monacoEditorValue,
+  setEditingCell,
+	monacoEditorValue,
   setMonacoEditorValue,
   handlePanelSave,
   handleEditorReady,
@@ -103,10 +103,6 @@ const EditingPanelDialog: React.FC<EditingPanelDialogProps> = ({
           </DialogTitle>
 
           <DialogContent style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-            <div>
-              注意事項{' '}
-              <InfoLabel info={'目前無法正常使用 Tab 縮排，請使用空白鍵。'} />
-            </div>
 
             <Toolbar style={{ backgroundColor: 'rgba(216, 216, 216, 0.2)' }}>
               <Tooltip content="Save" relationship="label">
@@ -117,6 +113,7 @@ const EditingPanelDialog: React.FC<EditingPanelDialogProps> = ({
                   }
                 />
               </Tooltip>
+
               <Tooltip content="Save and Close" relationship="label">
                 <ToolbarButton
                   icon={<SaveEdit20Filled />}
@@ -128,12 +125,47 @@ const EditingPanelDialog: React.FC<EditingPanelDialogProps> = ({
                 />
               </Tooltip>
             </Toolbar>
+					
+						<div>
+              編輯器注意事項{' '}
+              <InfoLabel info={'目前無法正常使用 Tab 縮排，請使用空白鍵。'} />
+            </div>
 
-            <MonacoEditorBox
-              value={monacoEditorValue}
-              onChange={(newValue) => setMonacoEditorValue(newValue || '')}
-              onEditorReady={handleEditorReady}
-            />
+            <div 
+							style={{ 
+								display: "flex",
+      					flexDirection: "column",
+								minHeight: "520px",
+								border: '2px solid #ccc',
+								borderRadius: '4px', 
+								overflow: 'hidden',
+								padding: "4px",
+							}}>
+
+							{
+								selectedValue === "edit" && 
+									<MonacoEditorBox 
+										value={monacoEditorValue}
+										onChange={(nval) => setMonacoEditorValue(nval || "")}
+										onEditorReady={handleEditorReady}
+									/>
+							}
+
+							{
+								selectedValue === "setting" &&
+								 <Button onClick={() => {
+									editingCell.cellObject.celltype === "text" 
+									? setEditingCell({...editingCell, cellObject: {...editingCell.cellObject, celltype: "null"}})
+									: setEditingCell({...editingCell, cellObject: {...editingCell.cellObject, celltype: "text"}})
+
+									console.log(editingCell);
+								 }}>
+									{editingCell.cellObject.celltype}
+								 </Button>
+									
+							}
+
+						</div>
           </DialogContent>
 
           <DialogActions>
@@ -144,7 +176,7 @@ const EditingPanelDialog: React.FC<EditingPanelDialogProps> = ({
                 setEditPanelOpen(false);
               }}
             >
-              關閉
+              不存檔離開
             </Button>
           </DialogActions>
         </DialogBody>

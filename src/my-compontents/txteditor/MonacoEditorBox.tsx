@@ -21,7 +21,7 @@ const MonacoEditorBox: React.FC<MonacoEditorBoxProps> = ({
   value,
   onChange,
   language = "plaintxt",
-  height = "450px",
+  height = "480px",
   width = "100%",
   onEditorReady,
 }) => {
@@ -43,13 +43,8 @@ const MonacoEditorBox: React.FC<MonacoEditorBoxProps> = ({
 
   return(
     <div style={{
-      border: '1px solid #ccc',
-      borderRadius: '4px',
-      overflow: 'hidden',
       display: "flex",
       flexDirection: "column",
-      gap: "4px",
-      padding: "4px",
     }}>
       <Editor
         height={height}
@@ -73,13 +68,11 @@ const MonacoEditorBox: React.FC<MonacoEditorBoxProps> = ({
 
       <Toolbar>
         <LanguageSelector 
-          languageId={languageId}
-          setLanguageId={setLanguageId}
-          editorRef={editorRef}
-        />
+            languageId={languageId}
+            setLanguageId={setLanguageId}
+            editorRef={editorRef}
+          />
       </Toolbar>
-      
-
     </div>
   )
 }

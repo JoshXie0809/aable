@@ -9,7 +9,6 @@ function App() {
         <div style={{ 
           padding: "40px", 
           height: "1000px", 
-          width: "100%",
           display: "flex",
           flexDirection: "column",
           gap: 24,
