@@ -1,11 +1,14 @@
 import { makeStyles  } from "@fluentui/react-components";
 
-export type CellValue = {
-  value: string;
-}
+export type CellTypes = 
+  { celltype: "text", value: string, cellUniqueName: string | null } |
+  { celltype: "null", value: string, cellUniqueName: string | null }
+  // | {celltype: "int", value: number}
+  // | {celltype: "float", value: number};
+
 
 export type RowData = {
-  [colkey: string]: CellValue;
+  [colkey: string]: CellTypes;
 }
 
 const rows: number[] = Array.from({ length: 500 }, (_, i) => i + 1);
@@ -14,7 +17,12 @@ const cols: number[] = Array.from({ length: 30 }, (_, i) => i + 1);
 export const defaultSheet: RowData[] = rows.map(r => {
   // 產生 [ [C1, ...], ... ] 的 key-value pair 陣列
   const row: RowData = Object.fromEntries(
-    cols.map(c => [`C${c}`, { value: (r + c) % 29 !== 0 ? `` : "123" }])
+    cols.map(c => [`C${c}`, 
+      (r + c) % 37 === 0 
+      ? { celltype: "text", value: "1234567890123", cellUniqueName: null }
+      : { celltype: "null", value: "", cellUniqueName : null }
+    ])
+      
   );
   return row;
 });

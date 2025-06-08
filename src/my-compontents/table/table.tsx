@@ -29,7 +29,7 @@ import { InfoLabel, InfoLabelProps, Link } from "@fluentui/react-components";
 import { SaveEdit20Regular, Settings20Regular, SaveEdit20Filled } from "@fluentui/react-icons";
 
 import { useVirtualizer } from "@tanstack/react-virtual";
-import { RowData, defaultSheet, useSheetStyles } from "./rowtype";
+import { CellTypes, RowData, defaultSheet, useSheetStyles } from "./rowtype";
 import { useCellStyles, CellValue } from "./CellValue";
 
 import { DraggableDialog, DraggableDialogSurface, DraggableDialogHandle } from '@fluentui-contrib/react-draggable-dialog';
@@ -37,26 +37,13 @@ import { DraggableDialog, DraggableDialogSurface, DraggableDialogHandle } from '
 import {
   Toolbar,
   ToolbarButton,
-  ToolbarDivider,
-  Menu,
-  MenuTrigger,
-  MenuPopover,
-  MenuList,
-  MenuItem,
 } from "@fluentui/react-components";
 
 import MonacoEditorBox from "../txteditor/MonacoEditorBox";
 import * as monacoType from 'monaco-editor';
 
-
-import { DismissRegular } from "@fluentui/react-icons";
-import {
-  MessageBar,
-  MessageBarActions,
-  MessageBarTitle,
-  MessageBarBody,
-} from "@fluentui/react-components";
-
+import { useDraggable } from '@dnd-kit/core';
+import { DndContext } from '@dnd-kit/core';
 
 
 const useEditingPanelStyles = makeStyles({
@@ -68,13 +55,22 @@ const useEditingPanelStyles = makeStyles({
 })
 
 
+
 const FluentUITable: React.FC = () => {
+
+
+
   const [data, setData] = useState(defaultSheet);
   const styles = useSheetStyles();
   const cellstyles = useCellStyles();
   const editingPanelStyles = useEditingPanelStyles();
 
-  function updateTable(rowIndex: number, columnId: string, newValue: string) {
+  function updateTable(
+    rowIndex: number, 
+    columnId: string, 
+    newCellObj: CellTypes) 
+  {
+
     setData((old) =>
       old.map((row, i) => {
         if (i !== rowIndex) return row;
@@ -82,7 +78,7 @@ const FluentUITable: React.FC = () => {
           ...row,
           [columnId]: {
             ...row[columnId],
-            value: newValue,
+            ...newCellObj
           },
         };
       })
@@ -94,7 +90,7 @@ const FluentUITable: React.FC = () => {
   const [editingCell, setEditingCell] = useState<null | {
     rowIndex: number;
     columnId: string;
-    value: string;
+    cellObject: CellTypes;
     top: number;
     left: number;
     width: number;
@@ -120,10 +116,24 @@ const FluentUITable: React.FC = () => {
     newValue: string
   ) => {
 
-    setEditingCell(prev => prev ? { ...prev, value: newValue } : null);
     // 同步更新 Monaco Editor 的值，如果它正在編輯
     setMonacoEditorValue(newValue);
-    updateTable(targetRowIndex, targetColumnId, newValue);
+
+    if (editingCell?.cellObject.celltype === "text") {
+      var newCellObj = {...editingCell?.cellObject};
+      newCellObj.value = newValue;
+      setEditingCell(prev => prev ? { ...prev, cellObject: newCellObj } : null);
+      
+      updateTable(
+        targetRowIndex, 
+        targetColumnId, 
+        newCellObj,
+      );
+
+    } else if(editingCell?.cellObject.celltype === "null") {
+      // do nothing
+    }
+    
   };
 
 
@@ -144,9 +154,9 @@ const FluentUITable: React.FC = () => {
         accessorKey: key,
         header: key,
         cell: (info: any) => {
-          const value = info.row.original[info.column.id]?.value ?? "";
           const rowIndex = info.row.index;
           const columnId = info.column.id;
+          const cellObject: CellTypes = info.row.original[info.column.id] ?? null;
 
           return (
             <div
@@ -161,7 +171,7 @@ const FluentUITable: React.FC = () => {
                 setEditingCell({
                   rowIndex,
                   columnId,
-                  value,
+                  cellObject,
                   top: rect.top - containerRect.top + parentRef.current!.scrollTop,
                   left: rect.left - containerRect.left + parentRef.current!.scrollLeft,
                   width: rect.width,
@@ -175,61 +185,13 @@ const FluentUITable: React.FC = () => {
                 display: "flex",
               }}
             >
-              <CellValue value={value} className={cellstyles.cellTextEllipsis} />
+              <CellValue cellObj={cellObject} className={cellstyles.cellTextEllipsis} />
             </div>
           );
         },
       })),
     ];
   }, [data, cellstyles]);
-
-  // const columnKeys = Object.keys(data[0])
-  // const columns = [
-  //     {
-  //       id: "_rowIndex",
-  //       header: "",
-  //       cell: (info: any) : React.ReactNode => `R${info.row.index + 1}`,
-  //     },
-  //     ...columnKeys.map((key) => ({
-  //       accessorKey: key,
-  //       header: key,
-  //       cell: (info: any) => {
-  //         const value = info.row.original[info.column.id]?.value ?? "";
-  //         const rowIndex = info.row.index;
-  //         const columnId = info.column.id;
-
-  //         return (
-  //           <div
-  //             tabIndex={0}
-  //             onFocus={(e) => {
-  //               const cellElement = (e.target as HTMLElement).parentElement;
-  //               if (!cellElement) return; // 以防萬一，如果父元素不存在
-  //               const rect = cellElement.getBoundingClientRect(); // 獲取 TableCell 的邊界矩形
-  //               const containerRect = parentRef.current?.getBoundingClientRect();
-  //               if (!containerRect) return;                
-  //               setEditingCell({
-  //                 rowIndex,
-  //                 columnId,
-  //                 value,
-  //                 top: rect.top - containerRect.top + parentRef.current!.scrollTop,
-  //                 left: rect.left - containerRect.left + parentRef.current!.scrollLeft,
-  //                 width: rect.width,
-  //                 height: rect.height,
-  //               });
-  //             }}
-
-  //             style={{ 
-  //               width: "100%", 
-  //               height: "100%", 
-  //               display: "flex",
-  //             }}
-  //           >
-  //             <CellValue value={value} className={cellstyles.cellTextEllipsis}/>
-  //           </div>
-  //         );
-  //       },
-  //     })),
-  //   ];
 
   const table = useReactTable({ 
       data, 
@@ -300,6 +262,14 @@ const FluentUITable: React.FC = () => {
       };
     }
   }, [handleScroll]); // 依賴 handleScroll 確保事件監聽器正確添加/移除
+
+    const {attributes, listeners, setNodeRef, transform} = useDraggable({
+    id: 'draggable-editing-panel',
+  });
+
+  const draggableStyle = transform ? {
+    transform: `translate3d(${transform.x}px, ${transform.y}px, 0)`,
+  } : undefined;
   
   return (
     <div
@@ -393,73 +363,74 @@ const FluentUITable: React.FC = () => {
               height: editingCell.height,
             }}>
 
-          <CellValue className={cellstyles.cell} value={editingCell.value}/>
-          <DraggableDialog
-            open = {editPanelOpen}
-            // style={{ width: "300px"}}
-            // modalType="non-modal"
-          >
-            <DialogTrigger disableButtonEnhancement>
-              <Button
-                className={cellstyles.overflowButton1}
-                appearance="subtle"
-                onClick={() => {
-                  setEditPanelOpen(true)
-                  setMonacoEditorValue(editingCell.value)
-                }}
-                icon={<Settings20Regular />}
-              />
-            </DialogTrigger>
+          <CellValue className={cellstyles.cell} cellObj={editingCell.cellObject}/>
 
-            <DraggableDialogSurface
-              className={editingPanelStyles.editingPanel}
+            <Dialog
+              open = {editPanelOpen}
+              // style={{ width: "300px"}}
+              // modalType="non-modal"
             >
-              <DialogBody>
-                <DraggableDialogHandle>
+              <DialogTrigger disableButtonEnhancement>
+                <Button
+                  className={cellstyles.overflowButton1}
+                  appearance="subtle"
+                  onClick={() => {
+                    setEditPanelOpen(true)
+                    setMonacoEditorValue(`${editingCell.cellObject.value}`)
+                  }}
+                  icon={<Settings20Regular />}
+                />
+              </DialogTrigger>
+
+              <DialogSurface
+                ref={setNodeRef} style={draggableStyle} {...listeners} {...attributes}
+                className={editingPanelStyles.editingPanel}
+              >
+
+                <DialogBody>
                   <DialogTitle>
-                    編輯 
-                  </DialogTitle>
-                </DraggableDialogHandle>
-
-                <DialogContent style={{ display: 'flex', flexDirection: 'column', gap: "12px"}}>
-                  <div> 注意事項 <InfoLabel info={"目前無法正常使用 Tab 縮排，請使用空白鍵。"}/></div>
-
-                  <Toolbar style={{ backgroundColor: "rgba(216, 216, 216, 0.2)"}}>
-                    <Tooltip content="Save" relationship="label">
-                      <ToolbarButton icon={<SaveEdit20Regular/>} 
-                        onClick={() => handlePanelSave(editingCell.rowIndex, editingCell.columnId, monacoEditorValue)}/>
-                    </Tooltip>
-                    <Tooltip content="Save and Close" relationship="label">
-                      <ToolbarButton icon={<SaveEdit20Filled/>} 
-                        onClick={() => {
-                          handlePanelSave(editingCell.rowIndex, editingCell.columnId, monacoEditorValue)
-                          setMonacoEditorValue('');
-                          setEditPanelOpen(false);
-                        }}/>
-                    </Tooltip>
-                  </Toolbar>
+                    <DndContext><div ref={setNodeRef} style={draggableStyle} {...listeners} {...attributes}>🏆</div>👌</DndContext>
+                  </DialogTitle>  
                   
-                  <MonacoEditorBox 
-                    value={monacoEditorValue} 
-                    onChange={(newValue) => setMonacoEditorValue(newValue || '')} 
-                    onEditorReady={handleEditorReady}
-                  />
-                  
-                </DialogContent>
-                <DialogActions>
-                  <Button appearance="secondary" onClick = {() => {
-                    setMonacoEditorValue('');
-                    setEditPanelOpen(false);
-                  }}>關閉</Button>
-                </DialogActions>
-              </DialogBody>
-            </DraggableDialogSurface>
-          </DraggableDialog>
+                  <DialogContent style={{ display: 'flex', flexDirection: 'column', gap: "12px"}}>
+                    <div> 注意事項 <InfoLabel info={"目前無法正常使用 Tab 縮排，請使用空白鍵。"}/></div>
 
-        </div>
+                    <Toolbar style={{ backgroundColor: "rgba(216, 216, 216, 0.2)"}}>
+                      <Tooltip content="Save" relationship="label">
+                        <ToolbarButton icon={<SaveEdit20Regular/>} 
+                          onClick={() => handlePanelSave(editingCell.rowIndex, editingCell.columnId, monacoEditorValue)}/>
+                      </Tooltip>
+                      <Tooltip content="Save and Close" relationship="label">
+                        <ToolbarButton icon={<SaveEdit20Filled/>} 
+                          onClick={() => {
+                            handlePanelSave(editingCell.rowIndex, editingCell.columnId, monacoEditorValue)
+                            setMonacoEditorValue('');
+                            setEditPanelOpen(false);
+                          }}/>
+                      </Tooltip>
+                    </Toolbar>
+                    
+                    <MonacoEditorBox 
+                      value={monacoEditorValue} 
+                      onChange={(newValue) => setMonacoEditorValue(newValue || '')} 
+                      onEditorReady={handleEditorReady}
+                    />
+                    
+                  </DialogContent>
+                  <DialogActions>
+                    <Button appearance="secondary" onClick = {() => {
+                      setMonacoEditorValue('');
+                      setEditPanelOpen(false);
+                    }}>關閉</Button>
+                  </DialogActions>
+                </DialogBody>
+              </DialogSurface>
+            </Dialog>            
+          </div>
+
+
       )}
       
-
       
 
     </div>

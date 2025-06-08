@@ -1,14 +1,15 @@
 import { Text, makeStyles } from "@fluentui/react-components";
 import React from "react";
+import { CellTypes } from "./rowtype";
+import { BookLetter20Filled, Tag20Filled } from "@fluentui/react-icons"
 
 export const useCellStyles = makeStyles({
     cell: {
       whiteSpace: "nowrap", // 文字不換行
       overflow: "hidden",   // 隱藏超出部分
       textOverflow: "ellipsis", // 顯示省略號
-      width: "calc(100%)",
+      width: "100%",
       boxSizing: "border-box", // 包含 padding 在寬度內
-      paddingLeft: "12px",
     },
 
     editCellParent: {
@@ -56,16 +57,48 @@ export const useCellStyles = makeStyles({
 
 
 type CellValueProps = {
-  value: string;
+  cellObj: CellTypes;
   className: string;
 };
 
-export const CellValue = ({value, className}: CellValueProps) => {
-  return(
-    <Text wrap={false} size={400} align={"center"}
-      className={className}>{value}</Text>
+export const CellValue: React.FC<CellValueProps> = ({cellObj, className}) => {
+  var retValue = "";
+  
+  if( cellObj.celltype === "text") {
+    if(cellObj.value.length > 5)
+      retValue = cellObj.value.slice(0, 5) + "...";
+    else
+      retValue = cellObj.value;
+    return(
+        cellObj.cellUniqueName !== null ?
+        <Text wrap={false} size={400} align={"center"} className={className} 
+          style={{ display: "flex", alignItems: "center", justifyContent: "center"}}
+        >
+          <Tag20Filled />
+          {`${cellObj.cellUniqueName}`}
+        </Text>
+        : <Text wrap={false} size={400} align={"center"} className={className} 
+          style={{ display: "flex", alignItems: "center", justifyContent: "center"}}
+        >
+          <BookLetter20Filled />
+          {`${retValue}`}
+        </Text>
+    )
+  } 
+  else  return(
+    cellObj.cellUniqueName !== null ?
+    <Text wrap={false} size={400} align={"center"} className={className}>
+      {cellObj.cellUniqueName}
+    </Text> :
+    <Text wrap={false} size={400} align={"center"} className={className}>
+      {""}
+    </Text>
+
   )
+  
+
 }
+
 
 
 
