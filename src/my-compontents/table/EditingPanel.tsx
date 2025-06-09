@@ -36,14 +36,55 @@ import type {
   TabValue,
 } from "@fluentui/react-components";
 
+
+// 定義 handleCellValueChange
+const handlePanelSave_EditPage = (
+  editingCell: EditingCell,
+  setEditingCell: SetEditingCell,
+  newValue: string,
+  setMonacoEditorValue: React.Dispatch<string>,
+  updateTable: (rowIndex: number, columnID: string, newCellObj: CellTypes) => void,
+) => {
+
+  // 同步更新 Monaco Editor 的值，如果它正在編輯
+  setMonacoEditorValue(newValue);
+
+  if (editingCell?.cellObject.celltype === "text") {
+    var newCellObj__text = {...editingCell?.cellObject};
+    newCellObj__text.value = newValue;
+    setEditingCell(prev => prev ? { ...prev, cellObject: newCellObj__text } : null);
+    
+    updateTable(
+      editingCell.rowIndex, 
+      editingCell.columnId, 
+      newCellObj__text,
+    );
+
+  } else if(editingCell?.cellObject.celltype === "null") {
+    var newCellObj__null = {...editingCell?.cellObject};
+    // 還在想要不要清除
+    // newCellObj__null.value = '';
+    newCellObj__null.value = newValue;
+    setEditingCell(prev => prev ? { ...prev, cellObject: newCellObj__null } : null);
+    updateTable(
+      editingCell.rowIndex, 
+      editingCell.columnId, 
+      newCellObj__null,
+    );
+  }
+};
+
+
+
 type EditingPanelDialogProps = {
   editPanelOpen: boolean;
   setEditPanelOpen: (open: boolean) => void;
   editingCell: EditingCell;
 	setEditingCell: SetEditingCell;
+  updateTable: (rowIndex: number, columnID: string, newCellObj: CellTypes) => void,
+
   monacoEditorValue: string;
   setMonacoEditorValue: (val: string) => void;
-  handlePanelSave: (rowIndex: number, columnId: string, value: string) => void;
   handleEditorReady: (editor: monacoType.editor.IStandaloneCodeEditor, monaco: typeof monacoType) => void;
   editingPanelStyles?: { editingPanel?: string };
   cellstyles?: { overflowButton1?: string };
@@ -57,20 +98,20 @@ const EditingPanelDialog: React.FC<EditingPanelDialogProps> = ({
   setEditPanelOpen,
   editingCell,
   setEditingCell,
+  updateTable,
 	monacoEditorValue,
   setMonacoEditorValue,
-  handlePanelSave,
   handleEditorReady,
   editingPanelStyles = {},
   cellstyles = {},
 }) => {
 
-	  const [selectedValue, setSelectedValue] =
-    React.useState<TabValue>("edit");
+    const [selectedValue, setSelectedValue] =
+      React.useState<TabValue>("edit");
 
-		const onTabSelect = (event: SelectTabEvent, data: SelectTabData) => {
-			setSelectedValue(data.value);
-		};
+    const onTabSelect = (event: SelectTabEvent, data: SelectTabData) => {
+      setSelectedValue(data.value);
+    };
 
   return (
     <Dialog open={editPanelOpen}>
@@ -91,7 +132,7 @@ const EditingPanelDialog: React.FC<EditingPanelDialogProps> = ({
           <DialogTitle>
             <TabList selectedValue={selectedValue} onTabSelect={onTabSelect}>
               <Tab id="edit-panel-edit" value="edit">
-                編輯
+                內容
               </Tab>
               <Tab id="edit-panel-setting" value="setting">
                 設定
@@ -102,80 +143,81 @@ const EditingPanelDialog: React.FC<EditingPanelDialogProps> = ({
             </TabList>
           </DialogTitle>
 
-          <DialogContent style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+          <DialogContent style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
 
-            <Toolbar style={{ backgroundColor: 'rgba(216, 216, 216, 0.2)' }}>
-              <Tooltip content="Save" relationship="label">
-                <ToolbarButton
-                  icon={<SaveEdit20Regular />}
-                  onClick={() =>
-                    handlePanelSave(editingCell.rowIndex, editingCell.columnId, monacoEditorValue)
-                  }
-                />
-              </Tooltip>
-
-              <Tooltip content="Save and Close" relationship="label">
-                <ToolbarButton
-                  icon={<SaveEdit20Filled />}
-                  onClick={() => {
-                    handlePanelSave(editingCell.rowIndex, editingCell.columnId, monacoEditorValue);
-                    setMonacoEditorValue('');
-                    setEditPanelOpen(false);
-                  }}
-                />
-              </Tooltip>
-            </Toolbar>
-
-              <div>
-                編輯器注意事項{' '}
-                <InfoLabel info={'目前無法正常使用 Tab 縮排，請使用空白鍵。'} />
-              </div>
-
-              <div 
-                style={{ 
-                display: "flex",
-                flexDirection: "column",
-                minHeight: "520px",
-                border: '2px solid #ccc',
-                borderRadius: '4px', 
-                overflow: 'hidden',
-                padding: "4px",
-              }}>
+            <div 
+              style={{ 
+              display: "flex",
+              flexDirection: "column",
+              height: "588px",
+              overflow: 'auto',
+              padding: "4px",
+            }}>
 
               {
-                selectedValue === "edit" && 
-                <MonacoEditorBox 
-                  value={monacoEditorValue}
-                  onChange={(nval) => setMonacoEditorValue(nval || "")}
-                  onEditorReady={handleEditorReady}
-                />
+                selectedValue === "edit" && (
+                  <>
+                    <Toolbar style={{ backgroundColor: 'rgba(216, 216, 216, 0.2)', borderRadius: '4px', marginBottom: "16px" }}>
+                      <Tooltip content="Save" relationship="label">
+                        <ToolbarButton
+                          icon={<SaveEdit20Regular />}
+                          onClick={() =>
+                            handlePanelSave_EditPage(editingCell, setEditingCell, monacoEditorValue, setMonacoEditorValue, updateTable)
+                          }
+                        />
+                      </Tooltip>
+
+                      <Tooltip content="Save and Close" relationship="label">
+                        <ToolbarButton
+                          icon={<SaveEdit20Filled />}
+                          onClick={() => {
+                            handlePanelSave_EditPage(editingCell, setEditingCell, monacoEditorValue, setMonacoEditorValue, updateTable)
+                            setMonacoEditorValue('');
+                            setEditPanelOpen(false);
+                          }}
+                        />
+                      </Tooltip>
+                    </Toolbar>
+                    <div
+                      style={{border: "2px solid #ccc", borderRadius: "8px", padding: "4px"}}
+                    >
+                      <MonacoEditorBox 
+                        value={monacoEditorValue}
+                        onChange={(nval) => setMonacoEditorValue(nval || "")}
+                        onEditorReady={handleEditorReady}
+                      />
+                    </div>
+                  </>
+                )
               }
 
               {
-                selectedValue === "setting" &&
-                <Button onClick={() => {
-                  editingCell.cellObject.celltype === "text" 
-                  ? setEditingCell({...editingCell, cellObject: {...editingCell.cellObject, celltype: "null"}})
-                  : setEditingCell({...editingCell, cellObject: {...editingCell.cellObject, celltype: "text"}})
-                }}>
-                  {editingCell.cellObject.celltype}
-                </Button>
-									
-							}
+                // selectedValue === "setting" &&
+                // <Button onClick={() => {
+                //   editingCell.cellObject.celltype === "text" 
+                //   ? setEditingCell({...editingCell, cellObject: {...editingCell.cellObject, celltype: "null"}})
+                //   : setEditingCell({...editingCell, cellObject: {...editingCell.cellObject, celltype: "text"}})
+                // }}>
+                //   {editingCell.cellObject.celltype}
+                // </Button>
+                  
+              }
 
-						</div>
+            </div>
           </DialogContent>
 
           <DialogActions>
-            <Button
-              appearance="secondary"
-              onClick={() => {
-                setMonacoEditorValue('');
-                setEditPanelOpen(false);
-              }}
-            >
-              不存檔離開
-            </Button>
+            <Tooltip content={"請記得存檔"} relationship='label'>
+                <Button
+                  appearance="secondary"
+                  onClick={() => {
+                    setMonacoEditorValue('');
+                    setEditPanelOpen(false);
+                  }}
+                >
+                離開
+              </Button>
+            </Tooltip>
           </DialogActions>
         </DialogBody>
       </DialogSurface>

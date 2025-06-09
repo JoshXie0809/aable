@@ -1,6 +1,6 @@
 import { FluentProvider, webLightTheme, Text } from "@fluentui/react-components";
 import  FluentUITable  from "./my-compontents/table/table"
-
+// import QuickJSRun  from "./my-compontents/qjs/working";
 
 function App() {
 
@@ -15,7 +15,7 @@ function App() {
         }}>
 
           <Text size={500}>Hello world</Text>
-                    
+          {/* <QuickJSRun greetName={"Josh"} />        */}
           <FluentUITable />
 
         </div>
