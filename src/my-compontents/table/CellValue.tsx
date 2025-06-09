@@ -65,13 +65,13 @@ export const CellValue: React.FC<CellValueProps> = ({cellObj, className}) => {
   var retValue = "";
   
   if( cellObj.celltype === "text") {
-    if(cellObj.value.length > 5)
-      retValue = cellObj.value.slice(0, 5) + "...";
+    if(cellObj.value.length > 6)
+      retValue = cellObj.value.slice(0, 6) + "...";
     else
       retValue = cellObj.value;
     return(
         cellObj.cellUniqueName !== null ?
-        <Text wrap={false} size={400} align={"center"} className={className} 
+        <Text wrap={false} size={400} align={"center"} className={className} weight="semibold"
           style={{ display: "flex", alignItems: "center", justifyContent: "center"}}
         >
           <Tag20Filled />
@@ -87,10 +87,15 @@ export const CellValue: React.FC<CellValueProps> = ({cellObj, className}) => {
   } 
   else  return(
     cellObj.cellUniqueName !== null ?
-    <Text wrap={false} size={400} align={"center"} className={className}>
-      {cellObj.cellUniqueName}
-    </Text> :
-    <Text wrap={false} size={400} align={"center"} className={className}>
+
+        <Text wrap={false} size={400} align={"center"} className={className} weight="semibold"
+          style={{ display: "flex", alignItems: "center", justifyContent: "center"}}
+        >
+        <Tag20Filled />
+        {cellObj.cellUniqueName}
+      </Text>
+    
+    : <Text wrap={false} size={400} align={"center"} className={className}>
       {""}
     </Text>
 

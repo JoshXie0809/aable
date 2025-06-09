@@ -1,0 +1,4 @@
+## EditinPanel.tsx
+### handleUniqueNameChange
+驗證 cell UniqueName 的機制
+Rust => hashmap / api

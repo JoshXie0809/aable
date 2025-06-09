@@ -2,6 +2,7 @@ import * as React from "react";
 import { Select, useId, Tooltip, makeStyles } from "@fluentui/react-components";
 import { editor } from 'monaco-editor'; // <-- 更改這裡
 import { CodeBlock20Filled } from "@fluentui/react-icons";
+import { usePanelStyles } from "../table/EditingPanel";
 
 
 interface LanguageSelectorProps {
@@ -10,26 +11,13 @@ interface LanguageSelectorProps {
   editorRef: React.MutableRefObject<editor.IStandaloneCodeEditor | null>;
 }
 
-const useStyles = makeStyles({
-  languageText: {
-    ":hover": {
-    cursor: "pointer"
-  }
-  },
-    iconText: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: '4px',
-  }
-});
-
 const LanguageSelector: React.FC<LanguageSelectorProps> = ({
   editorRef,
   languageId,
   setLanguageId,
 }) => {
 
-  const styles = useStyles();
+  const styles = usePanelStyles();
   const editorId = useId("editor-language");
 
   const handleChange = (event: React.ChangeEvent<HTMLSelectElement>) => {

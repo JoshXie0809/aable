@@ -1,10 +1,12 @@
 import { makeStyles  } from "@fluentui/react-components";
 
 export type CellTypes = 
-  { celltype: "text", value: string, cellUniqueName: string | null } |
-  { celltype: "null", value: string, cellUniqueName: string | null }
+  { celltype: "text", value: string, cellUniqueName: string } |
+  { celltype: "null", value: string, cellUniqueName: string }
   // | {celltype: "int", value: number}
   // | {celltype: "float", value: number};
+
+export type PossibleCellType = "text" | "null";
 
 
 export type RowData = {
@@ -19,8 +21,8 @@ export const defaultSheet: RowData[] = rows.map(r => {
   const row: RowData = Object.fromEntries(
     cols.map(c => [`C${c}`, 
       (r + c) % 37 === 0 
-      ? { celltype: "text", value: "1234567890123", cellUniqueName: null }
-      : { celltype: "null", value: "", cellUniqueName : null }
+      ? { celltype: "text", value: "1234567890123", cellUniqueName: "" }
+      : { celltype: "null", value: "", cellUniqueName : "" }
     ])
       
   );

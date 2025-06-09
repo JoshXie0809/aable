@@ -14,27 +14,55 @@ import {
   TabList,
   Tab,
 	Text,
+  makeStyles,
+  Input,
 } from '@fluentui/react-components';
 
 
 import MonacoEditorBox from "../txteditor/MonacoEditorBox";
 import { InfoLabel } from '@fluentui/react-components'; // 確保這是你在用的組件
 import * as  monacoType from 'monaco-editor';
-import { CellTypes } from './rowtype';
+import { CellTypes, PossibleCellType } from './rowtype';
 import { EditingCell, SetEditingCell } from './table';
-
 
 import {
   SaveEdit20Regular,
 	Settings20Regular,
 	SaveEdit20Filled,
+  Tag20Filled,
 } from "@fluentui/react-icons";
+import type { InputProps } from "@fluentui/react-components";
 
 import type {
   SelectTabData,
   SelectTabEvent,
   TabValue,
 } from "@fluentui/react-components";
+import CellTypeSelector from './CellTypeSelector';
+
+
+
+export const usePanelStyles = makeStyles({
+  toolbar: {
+    backgroundColor: 'rgba(216, 216, 216, 0.2)', borderRadius: '4px', marginBottom: "16px",
+  },
+
+  editingPanelContent: {
+    border: "2px solid #ccc", borderRadius: "8px", padding: "4px", height: "100%", overflow: "auto",
+  },
+
+  languageText: {
+    ":hover": {
+    cursor: "pointer"
+  }
+
+  },
+    iconText: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '4px',
+  }
+});
 
 
 // 定義 handleCellValueChange
@@ -50,7 +78,7 @@ const handlePanelSave_EditPage = (
   setMonacoEditorValue(newValue);
 
   if (editingCell?.cellObject.celltype === "text") {
-    var newCellObj__text = {...editingCell?.cellObject};
+    let newCellObj__text = {...editingCell?.cellObject};
     newCellObj__text.value = newValue;
     setEditingCell(prev => prev ? { ...prev, cellObject: newCellObj__text } : null);
     
@@ -61,7 +89,9 @@ const handlePanelSave_EditPage = (
     );
 
   } else if(editingCell?.cellObject.celltype === "null") {
-    var newCellObj__null = {...editingCell?.cellObject};
+    
+    let newCellObj__null = {...editingCell?.cellObject};
+    
     // 還在想要不要清除
     // newCellObj__null.value = '';
     newCellObj__null.value = newValue;
@@ -73,6 +103,28 @@ const handlePanelSave_EditPage = (
     );
   }
 };
+
+const handlePanelSave_SettingPage = (
+  editingCell: EditingCell,
+  setEditingCell: SetEditingCell,
+  selectedCellType: PossibleCellType,
+  newUniqueName: string,
+  updateTable: (rowIndex: number, columnID: string, newCellObj: CellTypes) => void,
+) => {
+
+  let newCellObj = {...editingCell?.cellObject};
+  newCellObj.celltype = selectedCellType;
+  newCellObj.cellUniqueName = newUniqueName;
+
+  setEditingCell(prev => prev ? { ...prev, cellObject: newCellObj } : null);
+
+  updateTable(
+    editingCell.rowIndex, 
+    editingCell.columnId, 
+    newCellObj,
+  );
+}
+
 
 
 
@@ -106,12 +158,22 @@ const EditingPanelDialog: React.FC<EditingPanelDialogProps> = ({
   cellstyles = {},
 }) => {
 
-    const [selectedValue, setSelectedValue] =
-      React.useState<TabValue>("edit");
+  const styles = usePanelStyles();
 
-    const onTabSelect = (event: SelectTabEvent, data: SelectTabData) => {
-      setSelectedValue(data.value);
-    };
+  const [selectedTab, setSelectedTab] =
+    React.useState<TabValue>("edit");
+  const onTabSelect = (event: SelectTabEvent, data: SelectTabData) => {
+    setSelectedTab(data.value);
+  };
+
+  const [selectedCellType, setSelectedCellType] = 
+    React.useState<PossibleCellType>(editingCell.cellObject.celltype)
+
+  const [newUniqueName, setNewUniqueName] = React.useState(editingCell.cellObject.cellUniqueName);
+  const handleUniqueNameChange: InputProps["onChange"] = (event, data) => {
+    // 需要寫一個驗證 UniqueName 的機制
+    setNewUniqueName(data.value)
+  }
 
   return (
     <Dialog open={editPanelOpen}>
@@ -130,7 +192,7 @@ const EditingPanelDialog: React.FC<EditingPanelDialogProps> = ({
       <DialogSurface className={editingPanelStyles.editingPanel}>
         <DialogBody>
           <DialogTitle>
-            <TabList selectedValue={selectedValue} onTabSelect={onTabSelect}>
+            <TabList selectedValue={selectedTab} onTabSelect={onTabSelect}>
               <Tab id="edit-panel-edit" value="edit">
                 內容
               </Tab>
@@ -155,9 +217,9 @@ const EditingPanelDialog: React.FC<EditingPanelDialogProps> = ({
             }}>
 
               {
-                selectedValue === "edit" && (
+                selectedTab === "edit" && (
                   <>
-                    <Toolbar style={{ backgroundColor: 'rgba(216, 216, 216, 0.2)', borderRadius: '4px', marginBottom: "16px" }}>
+                    <Toolbar className={styles.toolbar}>
                       <Tooltip content="Save" relationship="label">
                         <ToolbarButton
                           icon={<SaveEdit20Regular />}
@@ -179,7 +241,7 @@ const EditingPanelDialog: React.FC<EditingPanelDialogProps> = ({
                       </Tooltip>
                     </Toolbar>
                     <div
-                      style={{border: "2px solid #ccc", borderRadius: "8px", padding: "4px"}}
+                      className={styles.editingPanelContent}
                     >
                       <MonacoEditorBox 
                         value={monacoEditorValue}
@@ -192,15 +254,55 @@ const EditingPanelDialog: React.FC<EditingPanelDialogProps> = ({
               }
 
               {
-                // selectedValue === "setting" &&
-                // <Button onClick={() => {
-                //   editingCell.cellObject.celltype === "text" 
-                //   ? setEditingCell({...editingCell, cellObject: {...editingCell.cellObject, celltype: "null"}})
-                //   : setEditingCell({...editingCell, cellObject: {...editingCell.cellObject, celltype: "text"}})
-                // }}>
-                //   {editingCell.cellObject.celltype}
-                // </Button>
-                  
+                selectedTab === "setting" && (
+                  <>
+                    <Toolbar className={styles.toolbar}>
+                      <Tooltip content="Save" relationship="label">
+                        <ToolbarButton
+                          icon={<SaveEdit20Regular />}
+                          onClick={() =>
+                            handlePanelSave_EditPage(editingCell, setEditingCell, monacoEditorValue, setMonacoEditorValue, updateTable)
+                          }
+                        />
+                      </Tooltip>
+
+                      <Tooltip content="Save and Close" relationship="label">
+                        <ToolbarButton
+                          icon={<SaveEdit20Filled />}
+                          onClick={() => {
+                            handlePanelSave_EditPage(editingCell, setEditingCell, monacoEditorValue, setMonacoEditorValue, updateTable);
+                            handlePanelSave_SettingPage(editingCell, setEditingCell, selectedCellType, newUniqueName, updateTable);
+                            setMonacoEditorValue('');
+                            setEditPanelOpen(false);
+                          }}
+                        />
+                      </Tooltip>
+                    </Toolbar>
+
+                    <div className={styles.editingPanelContent} >
+
+
+                      <div style={{ padding: "16px", paddingLeft: "24px", display: "flex", alignItems: "center", alignContent: "center", gap: "16px"}}> 
+                        <CellTypeSelector selectedCellType={selectedCellType} setSelectedCellType={setSelectedCellType} />
+                        <Text>
+                          單元格型態設定
+                        </Text>
+                      </div>
+
+                      <div style={{ padding: "16px", paddingLeft: "24px", display: "flex", alignItems: "center", alignContent: "center", gap: "16px"}}> 
+                        <Tag20Filled />
+                        <Input appearance="underline" value={newUniqueName} onChange={handleUniqueNameChange} />
+                        <Text>
+                          單元格別名設定
+                        </Text>
+                      </div>
+
+
+                    </div>
+
+                  </>
+                )
+
               }
 
             </div>
