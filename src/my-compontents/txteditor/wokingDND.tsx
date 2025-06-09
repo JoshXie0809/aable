@@ -150,7 +150,7 @@ function FluentDialog({
           這是模仿 Fluent UI 樣式的自製 Dialog。你可以拖曳上方標題區塊、關閉對話框，並保留 Fluent UI 的 spacing、字體、顏色與邊界風格。
         </Text>
 
-        <MonacoEditorBox value={editorValue} onChange={(nv) => setEditorValue(nv)} />
+        {/* <MonacoEditorBox value={editorValue} onChange={(nv) => setEditorValue(nv)} /> */}
       </div>
 
       <div className={styles.footer}>

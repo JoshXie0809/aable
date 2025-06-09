@@ -13,58 +13,18 @@ import {
   TableRow,
   makeStyles,
   mergeClasses,
-  Button,
-  Dialog,
-  DialogActions,
-  DialogBody,
-  DialogContent,
-  DialogTrigger,
-  DialogTitle,
-  DialogSurface,
-  Tooltip,
+
 } from "@fluentui/react-components";
 
-import { InfoLabel, InfoLabelProps, Link } from "@fluentui/react-components";
 
-import { SaveEdit20Regular, Settings20Regular, SaveEdit20Filled } from "@fluentui/react-icons";
 
 import { useVirtualizer } from "@tanstack/react-virtual";
 import { CellTypes, RowData, defaultSheet, useSheetStyles } from "./rowtype";
 import { useCellStyles, CellValue } from "./CellValue";
 
-
-import { tokens, Tab, TabList } from "@fluentui/react-components";
-import type {
-  SelectTabData,
-  SelectTabEvent,
-  TabValue,
-} from "@fluentui/react-components";
-
-import {
-  Toolbar,
-  ToolbarButton,
-} from "@fluentui/react-components";
-
-import MonacoEditorBox from "../txteditor/MonacoEditorBox";
 import * as monacoType from 'monaco-editor';
 
-import {
-  AirplaneRegular,
-  AirplaneFilled,
-  AirplaneTakeOffRegular,
-  AirplaneTakeOffFilled,
-  TimeAndWeatherRegular,
-  TimeAndWeatherFilled,
-  bundleIcon,
-} from "@fluentui/react-icons";
 import EditingPanelDialog from "./EditingPanel";
-
-const Airplane = bundleIcon(AirplaneFilled, AirplaneRegular);
-const AirplaneTakeOff = bundleIcon(
-  AirplaneTakeOffFilled,
-  AirplaneTakeOffRegular
-);
-const TimeAndWeather = bundleIcon(TimeAndWeatherFilled, TimeAndWeatherRegular);
 
 
 const useEditingPanelStyles = makeStyles({
@@ -356,6 +316,7 @@ const FluentUITable: React.FC = () => {
           <CellValue className={cellstyles.cell} cellObj={editingCell.cellObject}/>
           
           <EditingPanelDialog 
+            editorRef={editorRef}
             editPanelOpen={editPanelOpen}
             setEditPanelOpen={setEditPanelOpen}
 

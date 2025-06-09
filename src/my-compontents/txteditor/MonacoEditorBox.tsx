@@ -4,13 +4,17 @@ import * as monacoType from 'monaco-editor';
 import { Text, makeStyles, Tooltip, Toolbar } from '@fluentui/react-components';
 import { CodeBlockFilled } from "@fluentui/react-icons";
 import LanguageSelector from './LanguageSelector';
+import { EditingCell, SetEditingCell } from '../table/table';
 
 
 
 interface MonacoEditorBoxProps {
   value: string;
   onChange: (value: string) => void;
-  language?: string;
+
+  editingCell: EditingCell,
+  setEditingCell: SetEditingCell,
+
   height?: string;
   width?: string;
   onEditorReady?: (editor: monacoType.editor.IStandaloneCodeEditor, monaco: typeof monacoType) => void;
@@ -20,16 +24,22 @@ interface MonacoEditorBoxProps {
 const MonacoEditorBox: React.FC<MonacoEditorBoxProps> = ({
   value,
   onChange,
-  language = "plaintxt",
+
+  editingCell,
+  setEditingCell,
+
   height = "480px",
   width = "100%",
   onEditorReady,
 }) => {
 
   const editorRef = React.useRef<null | monacoType.editor.IStandaloneCodeEditor>(null);
-  const [languageId, setLanguageId] = React.useState<string>("");
-  
 
+  const [languageId, setLanguageId] = React.useState<string>(
+    editingCell.cellObject.editorLanguage === "" ? "plaintext" : editingCell.cellObject.editorLanguage
+  );
+
+  
   const handleEditorMount: OnMount = (editor, monaco) => {
     // 設定外層的 ref
     if(onEditorReady) 
@@ -37,8 +47,6 @@ const MonacoEditorBox: React.FC<MonacoEditorBoxProps> = ({
 
     // EditorBox 要用的 ref
     editorRef.current = editor;
-    const lang = editor.getModel()?.getLanguageId() ?? "";
-    setLanguageId(lang);
   }
 
   return(
@@ -49,7 +57,7 @@ const MonacoEditorBox: React.FC<MonacoEditorBoxProps> = ({
       <Editor
         height={height}
         width={width}
-        language={language}
+        language={languageId}
         value={value}
         onChange={(newValue) => onChange(newValue || '')}
         onMount={handleEditorMount}
@@ -71,6 +79,8 @@ const MonacoEditorBox: React.FC<MonacoEditorBoxProps> = ({
             languageId={languageId}
             setLanguageId={setLanguageId}
             editorRef={editorRef}
+            editingCell={editingCell}
+            setEditingCell={setEditingCell}
           />
       </Toolbar>
     </div>

@@ -70,7 +70,7 @@ export const CellValue: React.FC<CellValueProps> = ({cellObj, className}) => {
     else
       retValue = cellObj.value;
     return(
-        cellObj.cellUniqueName !== null ?
+        cellObj.cellUniqueName !== "" ?
         <Text wrap={false} size={400} align={"center"} className={className} weight="semibold"
           style={{ display: "flex", alignItems: "center", justifyContent: "center"}}
         >
@@ -86,7 +86,7 @@ export const CellValue: React.FC<CellValueProps> = ({cellObj, className}) => {
     )
   } 
   else  return(
-    cellObj.cellUniqueName !== null ?
+    cellObj.cellUniqueName !== "" ?
 
         <Text wrap={false} size={400} align={"center"} className={className} weight="semibold"
           style={{ display: "flex", alignItems: "center", justifyContent: "center"}}

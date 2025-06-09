@@ -15,7 +15,7 @@ function App() {
         }}>
 
           <Text size={500}>Hello world</Text>
-          {/* <QuickJSRun greetName={"Josh"} />        */}
+
           <FluentUITable />
 
         </div>

@@ -1,7 +1,6 @@
 import * as React from "react";
 import { Select, useId, Tooltip } from "@fluentui/react-components";
 import { BinRecycle20Regular, BookLetter20Filled, CodeBlock20Filled } from "@fluentui/react-icons";
-import { usePanelStyles } from "../table/EditingPanel";
 import { PossibleCellType } from "./rowtype";
 
 
@@ -15,7 +14,6 @@ const CellTypeSelector: React.FC<CellTypeSelectorProps> = ({
   setSelectedCellType,
 }) => {
 
-  const styles = usePanelStyles();
   const editingCellType = useId("editor-setting-celltype");
 
   const handleChange = (event: React.ChangeEvent<HTMLSelectElement>) => {

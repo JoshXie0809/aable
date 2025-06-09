@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { MutableRefObject, useEffect, useRef} from 'react';
 import {
   Dialog,
   DialogTrigger,
@@ -20,7 +20,7 @@ import {
 
 
 import MonacoEditorBox from "../txteditor/MonacoEditorBox";
-import { InfoLabel } from '@fluentui/react-components'; // 確保這是你在用的組件
+
 import * as  monacoType from 'monaco-editor';
 import { CellTypes, PossibleCellType } from './rowtype';
 import { EditingCell, SetEditingCell } from './table';
@@ -73,11 +73,12 @@ const handlePanelSave_EditPage = (
   setMonacoEditorValue: React.Dispatch<string>,
   updateTable: (rowIndex: number, columnID: string, newCellObj: CellTypes) => void,
 ) => {
-
+  console.log(editingCell)
   // 同步更新 Monaco Editor 的值，如果它正在編輯
   setMonacoEditorValue(newValue);
 
   if (editingCell?.cellObject.celltype === "text") {
+
     let newCellObj__text = {...editingCell?.cellObject};
     newCellObj__text.value = newValue;
     setEditingCell(prev => prev ? { ...prev, cellObject: newCellObj__text } : null);
@@ -88,14 +89,17 @@ const handlePanelSave_EditPage = (
       newCellObj__text,
     );
 
-  } else if(editingCell?.cellObject.celltype === "null") {
+  }  else 
+  if(editingCell?.cellObject.celltype === "null") {
     
     let newCellObj__null = {...editingCell?.cellObject};
-    
     // 還在想要不要清除
     // newCellObj__null.value = '';
     newCellObj__null.value = newValue;
+    
+    newCellObj__null.editorLanguage = "";
     setEditingCell(prev => prev ? { ...prev, cellObject: newCellObj__null } : null);
+
     updateTable(
       editingCell.rowIndex, 
       editingCell.columnId, 
@@ -111,8 +115,9 @@ const handlePanelSave_SettingPage = (
   newUniqueName: string,
   updateTable: (rowIndex: number, columnID: string, newCellObj: CellTypes) => void,
 ) => {
-
+  
   let newCellObj = {...editingCell?.cellObject};
+
   newCellObj.celltype = selectedCellType;
   newCellObj.cellUniqueName = newUniqueName;
 
@@ -126,9 +131,19 @@ const handlePanelSave_SettingPage = (
 }
 
 
-
+const handlePanelLeave = (
+  setMonacoEditorValue: React.Dispatch<string>,
+  setNewUniqueName: React.Dispatch<string>,
+  setEditPanelOpen: React.Dispatch<boolean>,
+) => {
+  setMonacoEditorValue('');
+  // setSelectedCellType(editingCell.cellObject.celltype);
+  setNewUniqueName('');
+  setEditPanelOpen(false);
+}
 
 type EditingPanelDialogProps = {
+  editorRef: MutableRefObject<monacoType.editor.IStandaloneCodeEditor | null>,
   editPanelOpen: boolean;
   setEditPanelOpen: (open: boolean) => void;
   editingCell: EditingCell;
@@ -146,6 +161,7 @@ type EditingPanelDialogProps = {
 
 
 const EditingPanelDialog: React.FC<EditingPanelDialogProps> = ({
+  editorRef,
   editPanelOpen,
   setEditPanelOpen,
   editingCell,
@@ -158,6 +174,13 @@ const EditingPanelDialog: React.FC<EditingPanelDialogProps> = ({
   cellstyles = {},
 }) => {
 
+
+  const [selectedCellType, setSelectedCellType] = React.useState(editingCell.cellObject.celltype);
+  
+  const [newUniqueName, setNewUniqueName] = React.useState(editingCell.cellObject.cellUniqueName);
+  
+
+
   const styles = usePanelStyles();
 
   const [selectedTab, setSelectedTab] =
@@ -166,10 +189,8 @@ const EditingPanelDialog: React.FC<EditingPanelDialogProps> = ({
     setSelectedTab(data.value);
   };
 
-  const [selectedCellType, setSelectedCellType] = 
-    React.useState<PossibleCellType>(editingCell.cellObject.celltype)
+  
 
-  const [newUniqueName, setNewUniqueName] = React.useState(editingCell.cellObject.cellUniqueName);
   const handleUniqueNameChange: InputProps["onChange"] = (event, data) => {
     // 需要寫一個驗證 UniqueName 的機制
     setNewUniqueName(data.value)
@@ -220,22 +241,21 @@ const EditingPanelDialog: React.FC<EditingPanelDialogProps> = ({
                 selectedTab === "edit" && (
                   <>
                     <Toolbar className={styles.toolbar}>
-                      <Tooltip content="Save" relationship="label">
+                      <Tooltip content="Save Current Tab" relationship="label">
                         <ToolbarButton
                           icon={<SaveEdit20Regular />}
-                          onClick={() =>
-                            handlePanelSave_EditPage(editingCell, setEditingCell, monacoEditorValue, setMonacoEditorValue, updateTable)
-                          }
+                          onClick={() => {
+                            handlePanelSave_EditPage(editingCell, setEditingCell, monacoEditorValue, setMonacoEditorValue, updateTable);                            
+                          }}
                         />
                       </Tooltip>
 
-                      <Tooltip content="Save and Close" relationship="label">
+                      <Tooltip content="Save Current Tab and Close" relationship="label">
                         <ToolbarButton
                           icon={<SaveEdit20Filled />}
                           onClick={() => {
-                            handlePanelSave_EditPage(editingCell, setEditingCell, monacoEditorValue, setMonacoEditorValue, updateTable)
-                            setMonacoEditorValue('');
-                            setEditPanelOpen(false);
+                            handlePanelSave_EditPage(editingCell, setEditingCell, monacoEditorValue, setMonacoEditorValue, updateTable);                            
+                            handlePanelLeave(setMonacoEditorValue, setNewUniqueName, setEditPanelOpen)
                           }}
                         />
                       </Tooltip>
@@ -247,6 +267,8 @@ const EditingPanelDialog: React.FC<EditingPanelDialogProps> = ({
                         value={monacoEditorValue}
                         onChange={(nval) => setMonacoEditorValue(nval || "")}
                         onEditorReady={handleEditorReady}
+                        editingCell={editingCell}
+                        setEditingCell={setEditingCell}
                       />
                     </div>
                   </>
@@ -257,23 +279,21 @@ const EditingPanelDialog: React.FC<EditingPanelDialogProps> = ({
                 selectedTab === "setting" && (
                   <>
                     <Toolbar className={styles.toolbar}>
-                      <Tooltip content="Save" relationship="label">
+                      <Tooltip content="Save Current Tab" relationship="label">
                         <ToolbarButton
                           icon={<SaveEdit20Regular />}
-                          onClick={() =>
-                            handlePanelSave_EditPage(editingCell, setEditingCell, monacoEditorValue, setMonacoEditorValue, updateTable)
-                          }
+                          onClick={() =>  {
+                            handlePanelSave_SettingPage(editingCell, setEditingCell, selectedCellType, newUniqueName, updateTable);
+                          }}
                         />
                       </Tooltip>
 
-                      <Tooltip content="Save and Close" relationship="label">
+                      <Tooltip content="Save Current Tab and Close" relationship="label">
                         <ToolbarButton
                           icon={<SaveEdit20Filled />}
                           onClick={() => {
-                            handlePanelSave_EditPage(editingCell, setEditingCell, monacoEditorValue, setMonacoEditorValue, updateTable);
                             handlePanelSave_SettingPage(editingCell, setEditingCell, selectedCellType, newUniqueName, updateTable);
-                            setMonacoEditorValue('');
-                            setEditPanelOpen(false);
+                            handlePanelLeave(setMonacoEditorValue, setNewUniqueName, setEditPanelOpen)
                           }}
                         />
                       </Tooltip>
@@ -313,8 +333,7 @@ const EditingPanelDialog: React.FC<EditingPanelDialogProps> = ({
                 <Button
                   appearance="secondary"
                   onClick={() => {
-                    setMonacoEditorValue('');
-                    setEditPanelOpen(false);
+                    handlePanelLeave(setMonacoEditorValue, setNewUniqueName, setEditPanelOpen)
                   }}
                 >
                 離開

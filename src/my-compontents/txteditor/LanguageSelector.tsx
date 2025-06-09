@@ -3,18 +3,22 @@ import { Select, useId, Tooltip, makeStyles } from "@fluentui/react-components";
 import { editor } from 'monaco-editor'; // <-- 更改這裡
 import { CodeBlock20Filled } from "@fluentui/react-icons";
 import { usePanelStyles } from "../table/EditingPanel";
-
+import { SetEditingCell, EditingCell } from "../table/table";
 
 interface LanguageSelectorProps {
-  languageId: string,
-  setLanguageId: React.Dispatch<React.SetStateAction<string>>
+  languageId: string;
+  setLanguageId: React.Dispatch<React.SetStateAction<string>>;
   editorRef: React.MutableRefObject<editor.IStandaloneCodeEditor | null>;
+  editingCell: EditingCell;
+  setEditingCell: SetEditingCell;
 }
 
 const LanguageSelector: React.FC<LanguageSelectorProps> = ({
   editorRef,
   languageId,
   setLanguageId,
+  editingCell,
+  setEditingCell,
 }) => {
 
   const styles = usePanelStyles();
@@ -24,8 +28,13 @@ const LanguageSelector: React.FC<LanguageSelectorProps> = ({
   const newLanguageId = event.target.value;
   setLanguageId(newLanguageId);
   // 確保 editorRef.current 存在，並更新編輯器的語言
+
   if (editorRef.current) {
-  editor.setModelLanguage(editorRef.current.getModel()!, newLanguageId);
+    editor.setModelLanguage(editorRef.current.getModel()!, newLanguageId);
+    let newCellObj = {...editingCell?.cellObject};
+    newCellObj.editorLanguage = newLanguageId;    
+    setEditingCell(prev => prev ? { ...prev, cellObject: newCellObj } : null);
+    console.log(editingCell)
   }
 };
 
