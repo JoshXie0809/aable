@@ -34,7 +34,7 @@ const LanguageSelector: React.FC<LanguageSelectorProps> = ({
     let newCellObj = {...editingCell?.cellObject};
     newCellObj.editorLanguage = newLanguageId;    
     setEditingCell(prev => prev ? { ...prev, cellObject: newCellObj } : null);
-    console.log(editingCell)
+  
   }
 };
 

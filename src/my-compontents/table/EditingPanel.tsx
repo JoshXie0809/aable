@@ -73,7 +73,7 @@ const handlePanelSave_EditPage = (
   setMonacoEditorValue: React.Dispatch<string>,
   updateTable: (rowIndex: number, columnID: string, newCellObj: CellTypes) => void,
 ) => {
-  console.log(editingCell)
+
   // 同步更新 Monaco Editor 的值，如果它正在編輯
   setMonacoEditorValue(newValue);
 
@@ -176,10 +176,13 @@ const EditingPanelDialog: React.FC<EditingPanelDialogProps> = ({
 
 
   const [selectedCellType, setSelectedCellType] = React.useState(editingCell.cellObject.celltype);
-  
   const [newUniqueName, setNewUniqueName] = React.useState(editingCell.cellObject.cellUniqueName);
-  
 
+  useEffect(() => {
+    setSelectedCellType(editingCell.cellObject.celltype);
+    setNewUniqueName(editingCell.cellObject.cellUniqueName)
+  }, [editingCell])
+  
 
   const styles = usePanelStyles();
 
